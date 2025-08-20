@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>魔法の言葉 Presented by Asao</title>
+  <style type="text/css">
+    body {
+      background-color: #00802b; /* りそな銀行のコーポレートカラー */
+    }
+    .container {
+      width: 80%;
+      margin: 0 auto;
+      text-align: center;
+      color: #fff;
+      padding-top: 100px;
+      font-size: 24px;
+    }
+    .link {
+      display: block;
+      color: #fff;
+      text-decoration: underline;
+      font-size: 1.5em;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h1>今日の魔法の言葉</h1>
+  <div class="container">
+    <p id="magic-words"></p>
+  
+    <script>
+      const words = [
+  "今日も新たな挑戦が待っている！私たちの力で乗り越えよう！",
+  "一日の始まりは心の準備から。気持ちを切り替えて、一緒に頑張りましょう！",
+  "朝の光を浴びて、新しい1日が始まります。やる気を出して、目標に向かって突き進みましょう！",
+  "今日こそは、自分自身にチャレンジし、成長する日にしましょう！",
+  "前向きな気持ちでスタートを切りましょう。今日は、きっと素晴らしい1日になるはずです！",
+  "成功への近道は、諦めないこと。失敗を恐れずに挑戦しましょう！",
+  "自分自身を信じて、勇気を持って前進しましょう！",
+  "ポジティブな気持ちで、今日という日を楽しんでいきましょう！",
+  "一歩一歩、確実に目標に向かって進んでいきましょう！",
+  "自分自身に向き合い、自分自身を成長させるチャンスを今日も掴みましょう！",
+  "一日の計は朝にあり。今日も最高のスタートを切りましょう！",
+  "過去の自分を超えるために、今日も全力で挑戦しましょう！",
+  "明るく楽しい気持ちで、今日を過ごしていきましょう！",
+  "自分自身に勝ち、今日を素晴らしい1日にしましょう！",
+  "小さな積み重ねが、大きな成果につながります。今日も一つ一つ確実に進んでいきましょう！"
+      ];
+      function getRandomWord() {
+        const index = Math.floor(Math.random() * words.length);
+        return words[index];
+      }
+      const magicWords = document.getElementById('magic-words');
+      magicWords.innerText = getRandomWord();
+    </script>
+    <br>
+    <br>
+    <hr>
+    <a href="http://at-r.resona-gr.co.jp/" class="link">アットりそなへのジャンプ</a>
+  </div>
+</body>
+</html>
