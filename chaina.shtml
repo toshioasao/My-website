@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>赤背景パネル作成</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+    #inputArea {
+        margin-bottom: 20px;
+    }
+    .panel {
+        background-color: red;
+        color: white;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+    <h1>赤背景パネル作成サイト</h1>
+    <div id="inputArea">
+        <input type="text" id="textInput" placeholder="文字を入力" style="width: 300px; padding: 8px;">
+        <button onclick="addPanel()">追加</button>
+    </div>
+    <div id="panelContainer"></div>
+
+<script>
+function addPanel() {
+    const input = document.getElementById('textInput');
+    const text = input.value.trim();
+    if (text === '') {
+        alert('文字を入力してください');
+        return;
+    }
+    const panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.textContent = text;
+    document.getElementById('panelContainer').appendChild(panel);
+    input.value = '';
+}
+</script>
+</body>
+</html>
