@@ -1,9 +1,8 @@
 
-<!DOCTYPE html>
-<html lang="ja">
+html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>赤背景パネル作成</title>
+<title>赤黒グラデーションパネル生成</title>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -13,37 +12,73 @@
         margin-bottom: 20px;
     }
     .panel {
-        background-color: red;
+        width: 200px;
+        height: 200px;
+        background: linear-gradient(to bottom, red, black);
         color: white;
-        padding: 15px;
-        margin: 10px 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 10px;
         border-radius: 8px;
         font-size: 18px;
         font-weight: bold;
+        position: relative;
+    }
+    .footer {
+        position: absolute;
+        bottom: 8px;
+        font-size: 12px;
+        font-weight: normal;
+        opacity: 0.8;
+    }
+    #panelContainer {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    input {
+        margin: 5px;
+        padding: 8px;
     }
 </style>
 </head>
 <body>
-    <h1>赤背景パネル作成サイト</h1>
+    <h1>赤黒グラデーションパネル生成</h1>
     <div id="inputArea">
-        <input type="text" id="textInput" placeholder="文字を入力" style="width: 300px; padding: 8px;">
+        <input type="text" id="mainText" placeholder="本文を入力" style="width:200px;">
+        <input type="text" id="footerText" placeholder="出典を入力" style="width:200px;">
         <button onclick="addPanel()">追加</button>
     </div>
     <div id="panelContainer"></div>
 
 <script>
 function addPanel() {
-    const input = document.getElementById('textInput');
-    const text = input.value.trim();
-    if (text === '') {
-        alert('文字を入力してください');
+    const mainText = document.getElementById('mainText').value.trim();
+    const footerText = document.getElementById('footerText').value.trim();
+    if (mainText === '') {
+        alert('本文を入力してください');
         return;
     }
     const panel = document.createElement('div');
     panel.className = 'panel';
-    panel.textContent = text;
+
+    const mainDiv = document.createElement('div');
+    mainDiv.textContent = mainText;
+
+    const footerDiv = document.createElement('div');
+    footerDiv.className = 'footer';
+    footerDiv.textContent = footerText;
+
+    panel.appendChild(mainDiv);
+    if (footerText !== '') {
+        panel.appendChild(footerDiv);
+    }
+
     document.getElementById('panelContainer').appendChild(panel);
-    input.value = '';
+
+    document.getElementById('mainText').value = '';
+    document.getElementById('footerText').value = '';
 }
 </script>
 </body>
