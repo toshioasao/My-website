@@ -1,8 +1,9 @@
 
-html lang="ja">
+<!DOCTYPE html>
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>赤黒グラデーションパネル生成</title>
+<title>赤黒グラデーションパネル生成＋画像保存</title>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -11,9 +12,17 @@ html lang="ja">
     #inputArea {
         margin-bottom: 20px;
     }
+    textarea, input {
+        margin: 5px;
+        padding: 8px;
+    }
+    textarea {
+        width: 300px;
+        height: 80px;
+    }
     .panel {
-        width: 200px;
-        height: 200px;
+        width: 400px;
+        height: 400px;
         background: linear-gradient(to bottom, red, black);
         color: white;
         display: flex;
@@ -22,14 +31,15 @@ html lang="ja">
         align-items: center;
         margin: 10px;
         border-radius: 8px;
-        font-size: 18px;
+        font-size: 24px;
         font-weight: bold;
         position: relative;
+        text-align: center;
     }
     .footer {
         position: absolute;
-        bottom: 8px;
-        font-size: 12px;
+        bottom: 10px;
+        font-size: 14px;
         font-weight: normal;
         opacity: 0.8;
     }
@@ -37,17 +47,22 @@ html lang="ja">
         display: flex;
         flex-wrap: wrap;
     }
-    input {
-        margin: 5px;
-        padding: 8px;
+    .download-btn {
+        margin-top: 10px;
+        background: #333;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        cursor: pointer;
+        border-radius: 4px;
     }
 </style>
 </head>
 <body>
-    <h1>赤黒グラデーションパネル生成</h1>
+    <h1>赤黒グラデーションパネル生成＋画像保存</h1>
     <div id="inputArea">
-        <input type="text" id="mainText" placeholder="本文を入力" style="width:200px;">
-        <input type="text" id="footerText" placeholder="出典を入力" style="width:200px;">
+        <textarea id="mainText" placeholder="本文を入力"></textarea><br>
+        <input type="text" id="footerText" placeholder="出典を入力">
         <button onclick="addPanel()">追加</button>
     </div>
     <div id="panelContainer"></div>
@@ -60,6 +75,8 @@ function addPanel() {
         alert('本文を入力してください');
         return;
     }
+
+    // パネル作成
     const panel = document.createElement('div');
     panel.className = 'panel';
 
@@ -75,11 +92,35 @@ function addPanel() {
         panel.appendChild(footerDiv);
     }
 
+    // ダウンロードボタン
+    const downloadBtn = document.createElement('button');
+    downloadBtn.textContent = '画像保存';
+    downloadBtn.className = 'download-btn';
+    downloadBtn.onclick = () => downloadPanel(panel);
+    panel.appendChild(downloadBtn);
+
     document.getElementById('panelContainer').appendChild(panel);
 
     document.getElementById('mainText').value = '';
     document.getElementById('footerText').value = '';
 }
+
+// パネルを画像として保存
+function downloadPanel(panel) {
+    html2canvas(panel, { backgroundColor: null }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'panel.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+}
+
+// 外部ライブラリ読み込み（html2canvas）
+(function loadHtml2Canvas() {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    document.body.appendChild(script);
+})();
 </script>
 </body>
 </html>
