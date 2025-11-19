@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>電光掲示板テロップ（タグ修正済み）</title>
+<style>
+  body { background:#222; color:#fff; font-family:Arial,sans-serif; padding:20px; }
+  #inputArea { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+  input[type="text"], input[type="number"] { padding:6px; font-size:14px; color:#111; }
+  #previewContainer { width:500px; height:30px; background:#000; border:2px solid #444; position:relative; overflow:hidden; }
+  #previewText {
+    position:absolute; white-space:nowrap; font-size:12px; color:#0f0;
+    font-family:"Courier New", monospace; top:50%; transform:translateY(-50%); left:0;
+  }
+  #status { margin-top:8px; font-size:12px; color:#aaa; white-space:pre-line; }
+</style>
+</head>
+<body>
+  <h1>電光掲示板テロップ（タグ修正済み）</h1>
+  <div id="inputArea">
+    <input type="text" id="textInput" maxlength="100" placeholder="テロップ文字を入力">
+    <label>幅:<input type="number" id="gifWidth" value="500" min="100" max="2000"></label>
+    <label>高:<input type="number" id="gifHeight" value="30"  min="20"  max="500"></label>
+    <label>秒:<input type="number" id="gifSeconds" value="5"  min="1"   max="60"></label>
+    <label>FPS:<input type="number" id="gifFps" value="20"     min="1"   max="60"></label>
+    <button id="startBtn">開始</button>
+    <button id="stopBtn">停止</button>
+    <button id="makeGifBtn">GIF作成</button>
+  </div>
+
+  <div id="previewContainer"><div id="previewText"></div></div>
+  <div id="status"></div>
+
+  <!-- ★ここが重要：正しい<script>タグでgif.jsを読み込む -->
+  <script/cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.js</script>
+  <script>
+    // Workerの場所を明示（CDNが使えない場合はローカルパスに変更）
+    GIF.DEFAULT_OPTIONS.workerScript =
+      'https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js';
+  </script>
+
+  <!-- アプリロジック -->
+  <script>
+    // ===== DOMプレビュー（はみ出し防止） =====
+    let rafId = null, xPos = 0;
+    const speedPxPerFrame = 1;
+
+    function startMarqueePreview() {
+      const text = document.getElementById('textInput').value.trim();
+      if (!text) { alert('文字を入力してください'); return; }
+      const el = document.getElementById('previewText');
+      const cont = document.getElementById('previewContainer');
+      el.textContent = text;
+
+      const textWidth = el.offsetWidth;
+      const contWidth = cont.clientWidth;
+      xPos = contWidth; // 右端外から開始
+
+      cancelAnimationFrame(rafId);
+      const step = () => {
+        xPos -= speedPxPerFrame;
+        el.style.left = xPos + 'px';
+        if (xPos < -textWidth) xPos = contWidth;
+        rafId = requestAnimationFrame(step);
+      };
+      rafId = requestAnimationFrame(step);
+    }
+    function stopMarqueePreview() { cancelAnimationFrame(rafId); rafId = null; }
+
+    document.getElementById('startBtn').addEventListener('click', startMarqueePreview);
+    document.getElementById('stopBtn').addEventListener('click', stopMarqueePreview);
+
+    // ===== GIF作成（Canvas + gif.js） =====
+    document.getElementById('makeGifBtn').addEventListener('click', () => {
+      const status = document.getElementById('status');
+      const text = document.getElementById('textInput').value.trim();
+      if (!text) { alert('文字を入力してください'); return; }
+
+      const width  = parseInt(document.getElementById('gifWidth').value, 10);
+      const height = parseInt(document.getElementById('gifHeight').value, 10);
+      const seconds = parseInt(document.getElementById('gifSeconds').value, 10);
+      const fps = parseInt(document.getElementById('gifFps').value, 10);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      const fontSize = 12;
+      ctx.font = `${fontSize}px "Courier New", monospace`;
+      ctx.textBaseline = 'alphabetic';
+      const textColor = '#0f0';
+      const textWidth = Math.ceil(ctx.measureText(text).width);
+      let x = width; // 初期位置（右端外）
+      const frames = Math.max(1, seconds * fps);
+      const delay = Math.round(1000 / fps);
+
+      const gif = new GIF({
+        workers: 2,
+        quality: 12,
+        width, height,
+        background: '#000',
+        transparent: null
+      });
+
+      status.textContent = 'GIF作成中…';
+
+      for (let i = 0; i < frames; i++) {
+        // 背景
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, width, height);
+        // テキスト（垂直センタリング近似）
+        ctx.fillStyle = textColor;
+        const baselineY = Math.round(height / 2 + fontSize / 2 - 3);
+        ctx.fillText(text, x, baselineY);
+        gif.addFrame(canvas, { copy: true, delay });
+
+        // 位置更新（ループ）
+        x -= speedPxPerFrame;
+        if (x < -textWidth) x = width;
+      }
+
+      gif.on('finished', (blob) => {
+        status.textContent = 'GIF完成→自動ダウンロード';
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'marquee.gif';
+        document.body.appendChild(a); a.click();
+        setTimeout(() => { URL.revokeObjectURL(url); a.remove(); status.textContent = '完了'; }, 1000);
+      });
+
+      gif.on('error', (err) => {
+        console.error(err);
+        status.textContent = 'エラー：' + (err?.message || err);
+        alert('GIF作成に失敗：コンソールをご確認ください');
+      });
+
+      gif.render();
+    });
+  </script>
+</body>
+</html>
