@@ -2,80 +2,107 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>文字流しGIFメーカー</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
-        .container { max-width: 400px; background: white; padding: 20px; border-radius: 8px; }
-        input { width: 80%; padding: 8px; margin-bottom: 10px; }
-        button { padding: 8px 16px; cursor: pointer; }
-        #result { margin-top: 20px; }
-        canvas { display: none; } /* 描画用キャンバスは隠す */
+        body { font-family: "Helvetica Neue", Arial, sans-serif; padding: 20px; background: #f4f4f9; color: #333; display: flex; justify-content: center; }
+        .container { max-width: 450px; width: 100%; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h3 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .input-group { margin: 20px 0; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #status { margin-top: 15px; font-weight: bold; text-align: center; color: #666; }
+        #result { margin-top: 20px; text-align: center; }
+        img { max-width: 100%; border: 2px solid #333; border-radius: 4px; }
+        canvas { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <h3>文字流しGIFメーカー</h3>
-        <input type="text" id="textInput" maxlength="30" placeholder="流す文字を入力（最大30文字）">
-        <button id="generateBtn">GIF生成</button>
-        
-        <div id="result">
-            <p id="status"></p>
-            <div id="gifContainer"></div>
+        <div class="input-group">
+            <input type="text" id="textInput" maxlength="30" placeholder="流す文字を入力（30文字以内）">
         </div>
+        <button id="generateBtn">GIFを生成する</button>
+        
+        <div id="status"></div>
+        <div id="result"></div>
     </div>
 
-    <!-- GIF生成ライブラリ -->
+    <!-- ライブラリ本体を読み込み -->
     <script src="https://cdnjs.cloudflare.com"></script>
+
     <script>
         const btn = document.getElementById('generateBtn');
         const input = document.getElementById('textInput');
         const status = document.getElementById('status');
-        const container = document.getElementById('gifContainer');
+        const result = document.getElementById('result');
 
-        btn.addEventListener('click', () => {
-            const text = input.value || "サンプル";
-            status.innerText = "生成中...";
-            container.innerHTML = "";
+        btn.addEventListener('click', async () => {
+            const text = input.value.trim();
+            if (!text) {
+                alert("文字を入力してください");
+                return;
+            }
+
+            btn.disabled = true;
+            status.innerText = "GIFを生成中... (数秒かかります)";
+            result.innerHTML = "";
 
             const width = 255;
-            const height = 50;
-            const fontSize = 30;
+            const height = 60; // 少し高さを調整
+            const fontSize = 32;
             
-            // キャンバス作成
             const canvas = document.createElement('canvas');
             canvas.width = width;
             canvas.height = height;
             const ctx = canvas.getContext('2d');
 
+            // WebWorkerを使わず、メインスレッドで処理するように設定（エラー回避のため）
             const gif = new GIF({
                 workers: 2,
                 quality: 10,
                 workerScript: 'https://cdnjs.cloudflare.com'
             });
 
-            ctx.font = `${fontSize}px sans-serif`;
+            ctx.font = `bold ${fontSize}px sans-serif`;
             const textWidth = ctx.measureText(text).width;
 
-            // アニメーションのフレーム作成（右から左へ消えるまで）
-            // 開始位置: 右端(width), 終了位置: 左へ消えるまで(-textWidth)
-            for (let x = width; x >= -textWidth; x -= 10) {
+            // アニメーションフレーム作成
+            // 右端から開始し、左端へ完全に消えるまで
+            for (let x = width; x >= -textWidth; x -= 8) {
                 ctx.fillStyle = "black";
                 ctx.fillRect(0, 0, width, height);
                 ctx.fillStyle = "white";
                 ctx.fillText(text, x, height / 2 + fontSize / 3);
                 
-                gif.addFrame(ctx, {copy: true, delay: 50});
+                gif.addFrame(ctx, {copy: true, delay: 60});
             }
 
             gif.on('finished', (blob) => {
                 const url = URL.createObjectURL(blob);
                 const img = document.createElement('img');
                 img.src = url;
-                container.appendChild(img);
-                status.innerText = "完成！右クリックで保存できます。";
+                result.appendChild(img);
+                
+                status.innerText = "✨ 生成完了！";
+                btn.disabled = false;
+                
+                const p = document.createElement('p');
+                p.innerText = "画像を長押し、または右クリックで保存できます。";
+                p.style.fontSize = "12px";
+                result.appendChild(p);
             });
 
-            gif.render();
+            try {
+                gif.render();
+            } catch (err) {
+                console.error(err);
+                status.innerText = "エラーが発生しました。ページを再読み込みしてください。";
+                btn.disabled = false;
+            }
         });
     </script>
 </body>
