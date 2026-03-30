@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>文字流しGIFメーカー</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+        .container { max-width: 400px; background: white; padding: 20px; border-radius: 8px; }
+        input { width: 80%; padding: 8px; margin-bottom: 10px; }
+        button { padding: 8px 16px; cursor: pointer; }
+        #result { margin-top: 20px; }
+        canvas { display: none; } /* 描画用キャンバスは隠す */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>文字流しGIFメーカー</h3>
+        <input type="text" id="textInput" maxlength="30" placeholder="流す文字を入力（最大30文字）">
+        <button id="generateBtn">GIF生成</button>
+        
+        <div id="result">
+            <p id="status"></p>
+            <div id="gifContainer"></div>
+        </div>
+    </div>
+
+    <!-- GIF生成ライブラリ -->
+    <script src="https://cdnjs.cloudflare.com"></script>
+    <script>
+        const btn = document.getElementById('generateBtn');
+        const input = document.getElementById('textInput');
+        const status = document.getElementById('status');
+        const container = document.getElementById('gifContainer');
+
+        btn.addEventListener('click', () => {
+            const text = input.value || "サンプル";
+            status.innerText = "生成中...";
+            container.innerHTML = "";
+
+            const width = 255;
+            const height = 50;
+            const fontSize = 30;
+            
+            // キャンバス作成
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            const gif = new GIF({
+                workers: 2,
+                quality: 10,
+                workerScript: 'https://cdnjs.cloudflare.com'
+            });
+
+            ctx.font = `${fontSize}px sans-serif`;
+            const textWidth = ctx.measureText(text).width;
+
+            // アニメーションのフレーム作成（右から左へ消えるまで）
+            // 開始位置: 右端(width), 終了位置: 左へ消えるまで(-textWidth)
+            for (let x = width; x >= -textWidth; x -= 10) {
+                ctx.fillStyle = "black";
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = "white";
+                ctx.fillText(text, x, height / 2 + fontSize / 3);
+                
+                gif.addFrame(ctx, {copy: true, delay: 50});
+            }
+
+            gif.on('finished', (blob) => {
+                const url = URL.createObjectURL(blob);
+                const img = document.createElement('img');
+                img.src = url;
+                container.appendChild(img);
+                status.innerText = "完成！右クリックで保存できます。";
+            });
+
+            gif.render();
+        });
+    </script>
+</body>
+</html>
